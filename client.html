@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Socket.IO Client</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .container {
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .message-box {
+            margin: 10px 0;
+        }
+        #messages {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        button {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        input[type="text"] {
+            padding: 8px;
+            width: 70%;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Socket.IO Test Client</h2>
+
+        <div class="message-box">
+            <h3>Simple Message</h3>
+            <input type="text" id="messageInput" placeholder="Enter message">
+            <button onclick="sendMessage()">Send Message</button>
+        </div>
+
+        <div class="message-box">
+            <h3>JSON Message</h3>
+            <input type="text" id="jsonInput" placeholder="Enter JSON message">
+            <button onclick="sendJson()">Send JSON</button>
+        </div>
+
+        <div class="message-box">
+            <h3>Custom Event</h3>
+            <input type="text" id="customEventInput" placeholder="Enter custom event message">
+            <button onclick="sendCustomEvent()">Send Custom Event</button>
+        </div>
+
+        <h3>Messages:</h3>
+        <div id="messages"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+        // Connect to the Socket.IO server with namespace
+        const socket = io('http://localhost:4000/ws');
+
+        // Log connection status
+        socket.on('connect', () => {
+            appendMessage('Connected to server');
+        });
+
+        socket.on('disconnect', () => {
+            appendMessage('Disconnected from server');
+        });
+
+        // Listen for custom response
+        socket.on('my response', (data) => {
+            appendMessage('Received response: ' + JSON.stringify(data));
+        });
+
+        // Function to send simple message
+        function sendMessage() {
+            const message = document.getElementById('messageInput').value;
+            socket.emit('message', message);
+            appendMessage('Sent message: ' + message);
+            document.getElementById('messageInput').value = '';
+        }
+
+        // Function to send JSON message
+        function sendJson() {
+            const jsonMessage = document.getElementById('jsonInput').value;
+            try {
+                const jsonObj = JSON.parse(jsonMessage);
+                socket.emit('json', jsonObj);
+                appendMessage('Sent JSON: ' + jsonMessage);
+                document.getElementById('jsonInput').value = '';
+            } catch (e) {
+                appendMessage('Error: Invalid JSON');
+            }
+        }
+
+        // Function to send custom event
+        function sendCustomEvent() {
+            const message = document.getElementById('customEventInput').value;
+            socket.emit('my event', { data: message });
+            appendMessage('Sent custom event: ' + message);
+            document.getElementById('customEventInput').value = '';
+        }
+
+        // Function to append messages to the messages div
+        function appendMessage(message) {
+            const messagesDiv = document.getElementById('messages');
+            const messageElement = document.createElement('div');
+            messageElement.textContent = `${new Date().toLocaleTimeString()} - ${message}`;
+            messagesDiv.appendChild(messageElement);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+    </script>
+</body>
+</html>
